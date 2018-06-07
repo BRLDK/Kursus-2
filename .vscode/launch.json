@@ -7,7 +7,8 @@
             "name": "Kursus",
             "server": "https://udvikling-nav2018-r4-w1.bdchosting.dk",
             "serverInstance": "BDCkursus_BRL_SLN",
-            "authentication": "UserPassword",  
+            "authentication": "UserPassword",
+            "schemaUpdateMode": "Recreate",  
             "startupObjectId": 22,                 
             "port": 8049
         }
