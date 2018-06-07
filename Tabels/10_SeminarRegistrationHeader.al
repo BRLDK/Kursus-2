@@ -3,13 +3,13 @@ table 123456710 "Seminar Registration Header"
     // CSD1.00 - 2018-01-01 - D. E. Veloper
     //   Chapter 6 - Lab 1-3 & Lab 1-4
     //     - Created new table
-
+Caption = 'Seminar Registration Header';
 
     fields
     {
         field(1;"No.";Code[20])
         {
-
+            Caption = 'No.';
             trigger OnValidate();
             begin
                 if "No." <> xRec."No." then begin
@@ -63,7 +63,7 @@ table 123456710 "Seminar Registration Header"
         field(4;"Seminar Name";Text[50])
         {
         }
-        field(5;"Instructor Code";Code[10])
+        field(5;"Instructor Resource No.";Code[20])
         {
             TableRelation = Resource where (Type=const(Person));
 
@@ -74,7 +74,7 @@ table 123456710 "Seminar Registration Header"
         }
         field(6;"Instructor Name";Text[50])
         {
-            CalcFormula = Lookup(Resource.Name where ("No."=Field("Instructor Code"),
+            CalcFormula = Lookup(Resource.Name where ("No."=Field("Instructor Resource No."),
                                                       Type=const(Person)));
             Editable = false;
             FieldClass = FlowField;
@@ -282,14 +282,19 @@ table 123456710 "Seminar Registration Header"
         SeminarRoom : Record Resource;
         SeminarSetup : Record "Seminar Setup";
         NoSeriesMgt : Codeunit NoSeriesManagement;
-        Text001 : TextConst ENU = 'You cannot delete the Seminar Registration, because there is at least one %1 where %2=%3.';
-        Text002 : TextConst ENU = 'You cannot change the %1, because there is at least one %2 with %3=%4.';
+        Text001 : Label 'You cannot delete the Seminar Registration, because there is at least one %1 where %2=%3.';
+        Text002 : Label 'You cannot change the %1, because there is at least one %2 with %3=%4.';
         Text004 : Label 'This Seminar is for %1 participants. \The selected Room has a maximum of %2 participants \Do you want to change %3 for the Seminar from %4 to %5?';
         Text005 : Label 'Should the new %1 be copied to all %2 that are not yet invoiced?';
         Text006 : Label 'You cannot delete the Seminar Registration, because there is at least one %1.';
 
     trigger OnDelete();
     begin
+        //BRL..
+        If SeminarRegHeader.Status <> SeminarRegHeader.Status::Canceled then 
+          Error('Status skal være "Anuleret');           
+        //..BRL
+
         SeminarRegLine.RESET;
         SeminarRegLine.SETRANGE("Document No.","No.");
         SeminarRegLine.SETRANGE(Registered,true);
@@ -312,7 +317,7 @@ table 123456710 "Seminar Registration Header"
         SeminarCommentLine.SETRANGE("No.","No.");
         SeminarCommentLine.deleteALL;
     end;
-
+    
     trigger OnInsert();
     begin
         if "No." = '' then begin
@@ -328,6 +333,20 @@ table 123456710 "Seminar Registration Header"
         NoSeriesMgt.SetDefaultSeries("Posting No. Series",SeminarSetup."Posted Seminar Reg. Nos.");
     end;
 
+    local procedure InitRecord();
+    begin
+         if "No." = '' then begin
+          SeminarSetup.GET;
+          SeminarSetup.TestField("Seminar Registration Nos.");
+          NoSeriesMgt.InitSeries(SeminarSetup."Seminar Registration Nos.",xRec."No. Series",0D,"No.","No. Series");
+        end;
+
+        if "Posting Date" = 0D then
+          "Posting Date" := WORKDATE;
+        "Document Date" := WORKDATE;
+        SeminarSetup.GET;
+        NoSeriesMgt.SetDefaultSeries("Posting No. Series",SeminarSetup."Posted Seminar Reg. Nos.");
+    end;
     procedure AssistEdit(OldSeminarRegHeader : Record "Seminar Registration Header") : Boolean;
     begin
         with SeminarRegHeader do begin

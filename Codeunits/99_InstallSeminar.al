@@ -61,12 +61,13 @@ codeunit 123456799 InstallSeminar
         SeminarSetup."Posted Seminar Reg. Nos." := NoSerie.code;
 
         SeminarSetup.Modify;
-
+/*
         SourceCode.Code := 'SEMINAR';
         if SourceCode.Insert then;
         SourceCodeSetup.get;
         SourceCodeSetup.CSD_Seminar := 'SEMINAR';
         SourceCodeSetup.modify;
+*/
      end;
     local procedure CreateSeminar();
     var
